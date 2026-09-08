@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model HistoryEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+  source    String?
+  original  String   @db.Text
+  rewritten String   @db.Text
+  style     String
+  riskScore Int
+  @@index([userId, createdAt])
+}
+
+model UserSettings {
+  userId       String @id
+  defaultStyle String @default("clear")
+  dailyCap     Int    @default(50)
+  updatedAt    DateTime @updatedAt
+}
