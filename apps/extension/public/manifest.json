@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "NaturalWrite",
+  "name": "HumanizerDad",
   "version": "0.1.0",
   "description": "Improve prose clarity while keeping user control.",
   "permissions": ["storage", "activeTab"],

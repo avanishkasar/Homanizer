@@ -34,7 +34,7 @@ function showAction(x: number, y: number): void {
 async function transform(): Promise<void> {
   if (!current) return; action?.remove(); action = null;
   const settings = await getSettings();
-  if (!settings.apiKey) return showDialog(current, "", [], "Configure an API key in the NaturalWrite extension popup.");
+  if (!settings.apiKey) return showDialog(current, "", [], "Configure your HumanizerDad workspace access key in the extension popup.");
   try {
     const replies = await Promise.all(chunks(current.original).map(async (text) => {
       const response = await fetch(`${settings.apiBaseUrl}/api/rewrite`, { method: "POST", headers: { "content-type": "application/json", "x-naturalwrite-key": settings.apiKey }, body: JSON.stringify({ text, style: settings.style as WritingStyle, source: location.origin }) });
@@ -59,7 +59,7 @@ function replace(target: SelectionTarget, rewritten: string): void {
 function showDialog(target: SelectionTarget, rewritten: string, issues: string[], error: string | null): void {
   const overlay = document.createElement("div"); overlay.style.cssText = "position:fixed;inset:0;z-index:2147483647;background:#0008;display:grid;place-items:center;font-family:system-ui";
   const panel = document.createElement("section"); panel.style.cssText = "width:min(900px,92vw);max-height:85vh;overflow:auto;background:#111827;color:#f9fafb;border:1px solid #374151;border-radius:12px;padding:20px";
-  panel.innerHTML = error ? `<h2>NaturalWrite</h2><p>${escapeHtml(error)}</p>` : `<h2>Review rewrite</h2><p>${issues.length ? `Risk review: ${escapeHtml(issues.join("; "))}` : "Validation found no changed protected values."}</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px"><article><h3>Original</h3><pre>${escapeHtml(target.original)}</pre></article><article><h3>Rewritten</h3><pre>${escapeHtml(rewritten)}</pre></article></div>`;
+  panel.innerHTML = error ? `<h2>HumanizerDad</h2><p>${escapeHtml(error)}</p>` : `<h2>Review rewrite</h2><p>${issues.length ? `Risk review: ${escapeHtml(issues.join("; "))}` : "Validation found no changed protected values."}</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px"><article><h3>Original</h3><pre>${escapeHtml(target.original)}</pre></article><article><h3>Rewritten</h3><pre>${escapeHtml(rewritten)}</pre></article></div>`;
   const buttons = document.createElement("div"); buttons.style.cssText = "display:flex;gap:8px;margin-top:16px";
   const cancel = document.createElement("button"); cancel.textContent = error ? "Close" : "Cancel"; cancel.onclick = () => overlay.remove(); buttons.append(cancel);
   if (!error) { const copy = document.createElement("button"); copy.textContent = "Copy"; copy.onclick = () => { void navigator.clipboard.writeText(rewritten); }; const apply = document.createElement("button"); apply.textContent = "Replace"; apply.onclick = () => { replace(target, rewritten); overlay.remove(); }; buttons.append(copy, apply); }

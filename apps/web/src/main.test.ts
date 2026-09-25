@@ -1,2 +1,5 @@
 import { describe, expect, it } from "vitest";
-describe("web scaffold", () => { it("passes", () => expect("NaturalWrite").toContain("Write")); });
+describe("HumanizerDad branding", () => {
+  it("uses the requested product name", () =>
+    expect("HumanizerDad").toContain("Dad"));
+});

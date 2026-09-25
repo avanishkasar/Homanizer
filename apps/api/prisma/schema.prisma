@@ -16,12 +16,22 @@ model HistoryEntry {
   rewritten String   @db.Text
   style     String
   riskScore Int
+
   @@index([userId, createdAt])
 }
 
 model UserSettings {
-  userId       String @id
-  defaultStyle String @default("clear")
-  dailyCap     Int    @default(50)
+  userId       String   @id
+  defaultStyle String   @default("clear")
+  dailyCap     Int      @default(50)
   updatedAt    DateTime @updatedAt
+}
+
+model UsageEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+  kind      String
+
+  @@index([userId, createdAt])
 }
