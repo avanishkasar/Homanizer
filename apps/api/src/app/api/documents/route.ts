@@ -1,7 +1,7 @@
 import { OpenAIRewriteProvider } from "@naturalwrite/ai";
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { checkLimit, jsonError, prisma, styles, userFrom } from "../../../lib";
+import { checkLimit, corsHeaders, jsonError, prisma, styles, userFrom } from "../../../lib";
 import {
   DocumentProcessingError,
   rewriteUploadedDocument,
@@ -11,12 +11,6 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 
 const styleSchema = z.enum(styles);
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "content-type, x-naturalwrite-key",
-  "Access-Control-Expose-Headers": "content-disposition, x-humanizerdad-report",
-};
 
 export function OPTIONS(): Response {
   return new Response(null, { status: 204, headers: corsHeaders });
@@ -54,12 +48,16 @@ export async function POST(request: NextRequest): Promise<Response> {
       parsedStyle.data,
       provider,
     );
-    await prisma.usageEvent.create({
-      data: {
-        userId,
-        kind: `document_${result.contentType === "application/pdf" ? "pdf" : "docx"}`,
-      },
-    });
+    try {
+      await prisma.usageEvent.create({
+        data: {
+          userId,
+          kind: `document_${result.contentType === "application/pdf" ? "pdf" : "docx"}`,
+        },
+      });
+    } catch {
+      // In local dev without DB, continue
+    }
     const report = {
       paragraphsProcessed: result.paragraphsProcessed,
       paragraphsSkipped: result.paragraphsSkipped,
@@ -97,10 +95,13 @@ export async function POST(request: NextRequest): Promise<Response> {
         { error: error.message, code: error.code },
         { status: error.status, headers: corsHeaders },
       );
+    console.error("Document rewrite error:", error);
     return Response.json(
       {
         error:
-          "The document could not be rewritten. Your original file is unchanged.",
+          error instanceof Error
+            ? error.message
+            : "The document could not be rewritten. Your original file is unchanged.",
       },
       { status: 500, headers: corsHeaders },
     );
